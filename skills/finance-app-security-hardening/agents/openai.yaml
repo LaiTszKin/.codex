@@ -1,0 +1,4 @@
+interface:
+  display_name: "Finance Security Hardening"
+  short_description: "Audit finance-app risks, patch safely, and add security tests"
+  default_prompt: "Use $finance-app-security-hardening to red-team this financial codebase, exploit critical attack paths, patch confirmed vulnerabilities, and write failing-then-passing security tests."

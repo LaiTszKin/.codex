@@ -1,0 +1,4 @@
+interface:
+  display_name: "Brainstorming"
+  short_description: "Clarify unclear requirements with guided questions."
+  default_prompt: "Ask 3-5 targeted questions to clarify the user's intent and business logic, then summarize the clarified requirement."

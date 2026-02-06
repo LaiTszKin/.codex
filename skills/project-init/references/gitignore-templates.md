@@ -1,0 +1,66 @@
+# .gitignore Templates
+
+## javascript
+```
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# runtime data
+pids
+*.pid
+*.seed
+
+# coverage
+coverage/
+.nyc_output/
+
+# build
+build/
+dist/
+
+# env files
+.env
+.env.*
+
+# OS
+.DS_Store
+```
+
+## typescript
+```
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# runtime data
+pids
+*.pid
+*.seed
+
+# coverage
+coverage/
+.nyc_output/
+
+# build
+build/
+dist/
+
+# TypeScript
+*.tsbuildinfo
+
+# env files
+.env
+.env.*
+
+# OS
+.DS_Store
+```
