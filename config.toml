@@ -1,0 +1,46 @@
+notify = ["sh", "-c", "say -v \"Samantha\" -r 180 \"Development work completed. All tasks finished successfully\""]
+web_search = "live"
+suppress_unstable_features_warning = true
+
+model_provider = "codexzh"
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+disable_response_storage = true
+personality = "pragmatic"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+
+[model_providers]
+[model_providers.codexzh]
+name = "codexzh"
+base_url = "https://api.codexzh.com/v1"
+wire_api = "responses"
+requires_openai_auth = true
+
+[features]
+collaboration_modes = true
+shell_snapshot = true
+unified_exec = true
+collab = true
+
+[mcp_servers]
+
+[mcp_servers.context7]
+type = "stdio"
+command = "npx"
+args = ["-y", "@upstash/context7-mcp@latest"]
+
+[mcp_servers.context7.env]
+CONTEXT7_API_KEY = "ctx7sk-e8a45a51-402a-4420-9f7d-5f57f65ceb0c"
+
+[mcp_servers.figma]
+type = "stdio"
+command = "npx"
+args = ["-y", "figma-developer-mcp", "--figma-api-key=figd_a_4dGlkS2Vb0M9B2w4NJEnh7Z4p8FuaJ_XqwGO1l", "--stdio"]
+
+[shell_environment_policy]
+include_only = [ "PATH", "HOME", "VIRTUAL_ENV" ]
+
+[notice]
+hide_gpt5_1_migration_prompt = true
+"hide_gpt-5.1-codex-max_migration_prompt" = true
