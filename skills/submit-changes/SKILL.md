@@ -38,9 +38,15 @@ Load these only when needed:
 
 - Read current version from version files (prefer `project.toml` and `package.json` if present).
 - Inspect existing tags to infer the tag format (for example, `vX.Y.Z` vs `X.Y.Z`).
+- Infer a preferred semver bump from `<last_tag>..HEAD` change scope using references/semantic-versioning.md.
+- Derive a preferred next version candidate from the current version and the preferred bump.
 - Ask the user to choose both:
   - the version tag format or exact target version
   - the semver bump (`major`, `minor`, `patch`, or pre-release if the repo already uses it)
+- In the same question, provide your recommendation as a reference:
+  - preferred bump and preferred target version
+  - a short reason tied to detected change type (breaking, feature, or fix)
+- Keep final authority with the user; recommendation is guidance, not an override.
 - If the user specifies a concrete version, use it.
 - Follow references/semantic-versioning.md for bump rules.
 
@@ -87,6 +93,7 @@ Load these only when needed:
 ## Notes
 
 - Prefer direct actions; ask only for version choices if not provided.
+- When asking for versioning, always include your preferred bump/version recommendation with brief reasoning.
 - Never guess versions; always read from files.
 - If tests are required by the repo conventions, run them before commit.
 - If a new branch is needed, follow references/branch-naming.md.

@@ -1,13 +1,13 @@
 ---
 name: feature-propose
-description: Professional product-management workflow for proposing features from an existing codebase. Use when the user asks to understand an application, classify features from a user perspective into MVP/Important/Enhancement/Performance tiers, ask 3-5 clarifying questions when needed, propose numbered feature recommendations, and update AGENTS.md after user acceptance.
+description: Professional product-management workflow for proposing features from an existing codebase. Use when the user asks to understand an application, classify features from a user perspective into MVP/Important/Enhancement/Performance tiers, ask 3-5 clarifying questions when needed, propose numbered feature recommendations, record accepted items in AGENTS.md, and remove implemented items from AGENTS.md.
 ---
 
 # Feature Propose
 
 ## Overview
 
-Act as a professional PM: build a complete understanding of the current product from code, classify capabilities by user value, propose prioritized features, and persist accepted proposals in `AGENTS.md`.
+Act as a professional PM: build a complete understanding of the current product from code, classify capabilities by user value, propose prioritized features, persist accepted proposals in `AGENTS.md`, and keep the list clean by removing implemented items.
 
 ## References
 
@@ -57,7 +57,7 @@ Load these references as needed during classification:
   - Acceptance criteria
 - Keep proposals focused and minimal; avoid over-engineering.
 
-### 5) Persist accepted features to AGENTS.md
+### 5) Persist accepted features to AGENTS.md and clean up after implementation
 
 - Ask the user to accept/reject/edit features by number.
 - Once accepted, update repo-root `AGENTS.md` with a dedicated section:
@@ -68,6 +68,8 @@ Load these references as needed during classification:
   - Short feature statement
 - Preserve existing `AGENTS.md` content and style; do not rewrite unrelated sections.
 - If `AGENTS.md` does not exist, ask before creating it.
+- After the related feature is implemented, remove that feature entry from `## Accepted Feature Proposals` in `AGENTS.md`.
+- Remove only implemented items; keep unimplemented accepted items untouched.
 
 ## Output template
 
