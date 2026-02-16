@@ -1,0 +1,4 @@
+interface:
+  display_name: "Text to Short Video"
+  short_description: "Turn text into 30-60s short videos"
+  default_prompt: "Use $text-to-short-video to convert my text into a 30-60 second short video, generate prompts.json in the same JSON schema used by $openai-text-to-image-storyboard, load settings from /Users/tszkinlai/.codex/skills/text-to-short-video/.env, honor my requested video size, and post-process crop the final video when aspect ratio mismatches."
