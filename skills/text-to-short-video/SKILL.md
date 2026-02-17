@@ -1,149 +1,166 @@
 ---
 name: text-to-short-video
-description: Convert text into short-form videos by extracting key scenes, generating storyboard images, and final renders. Use when users ask to turn articles, scripts, chapters, notes, or marketing copy into 30-60 second videos for Shorts/Reels/TikTok, especially when prompt generation must follow the JSON format used by `openai-text-to-image-storyboard`.
+description: Generate 30-60 second short videos by directly calling an OpenAI-compatible video generation API from text. Keep role consistency by using roles.json as role prompt source and only updating role descriptions.
 ---
 
 # Text to Short Video
 
-## Core Dependencies
+## Overview
 
-Always coordinate these skills in order:
+This skill is **API-only**:
 
-1. `openai-text-to-image-storyboard` to generate storyboard images.
-2. `remotion-best-practices` to compose and render the final short video.
+1. Resolve role consistency from `roles.json`.
+2. Build one short-video prompt from text + roles.
+3. Call an OpenAI-compatible video generation API.
+4. Poll until the job is finished.
+5. Download one final MP4.
+6. Optionally run aspect-ratio/size post-processing.
+
+Do not use `openai-text-to-image-storyboard` or `remotion-best-practices` in this skill.
 
 ## Required Inputs
 
-Collect the minimum required inputs before execution:
+Collect only what is required:
 
 - `project_dir` (absolute path)
-- `content_name` (folder and output name)
-- source text (article/chapter/script/copy)
-- output video size (`width x height`, for example `1080x1920`; default: `1080x1920`)
+- `content_name` (output folder/file name)
+- source text or user-locked prompt
+- target size (`width x height`, default `1080x1920`)
+- target duration seconds (default `50`, keep in `30-60` range)
 
 If critical inputs are missing, ask concise follow-up questions.
 
-## Environment Setup
+## Role Definition (Required)
 
-Use the template:
+Always use:
 
-- `/Users/tszkinlai/.codex/skills/text-to-short-video/.env.example`
-- Copy it to:
-  - `/Users/tszkinlai/.codex/skills/text-to-short-video/.env`
+- `<project_dir>/pictures/<content_name>/roles.json`
 
-Important settings:
-
-- `OPENAI_API_URL` and `OPENAI_API_KEY` for image generation (required)
-- `TEXT_TO_SHORT_VIDEO_WIDTH` and `TEXT_TO_SHORT_VIDEO_HEIGHT` to control final render size
-
-Execution rule:
-
-- Always pass `--env-file /Users/tszkinlai/.codex/skills/text-to-short-video/.env`
-  so dependent scripts read configuration from this skill-level `.env`.
-
-## Workflow
-
-### 1) Extract video scenes from text
-
-- Parse input text and select 3-6 scenes that are visually clear and story-coherent.
-- For each scene, prepare:
-  - `title`
-  - one-line visual focus
-- Keep total pacing suitable for a 30-60 second short video.
-
-### 2) Generate `prompts.json` using the same JSON format as `openai-text-to-image-storyboard`
-
-Save file at:
-
-- `<project_dir>/pictures/<content_name>/prompts.json`
-
-Use one of these formats only.
-
-#### Format A: simple list
-
-```json
-[
-  {
-    "title": "Opening Hook",
-    "prompt": "cinematic city skyline at dusk, fast push-in, dramatic contrast, energetic mood"
-  },
-  {
-    "title": "Conflict Beat",
-    "prompt": "close-up on determined protagonist, wind-blown hair, neon reflections, tense expression"
-  }
-]
-```
-
-#### Format B: recurring-character structured format (recommended)
+Required JSON format:
 
 ```json
 {
   "characters": [
     {
-      "id": "hero_01",
-      "name": "Ari",
-      "appearance": "short black hair, brown eyes, athletic build",
-      "outfit": "dark hoodie, utility pants, white sneakers",
-      "description": "focused and alert"
-    }
-  ],
-  "scenes": [
-    {
-      "title": "Street Discovery",
-      "description": "night market street with rain reflections and neon signs",
-      "character_ids": ["hero_01"],
-      "character_descriptions": {
-        "hero_01": "walking quickly while scanning the crowd"
-      },
-      "camera": "medium tracking shot",
-      "lighting": "blue-magenta neon rim light"
+      "id": "lin_xia",
+      "name": "Lin Xia",
+      "appearance": "short black hair, amber eyes, slim build",
+      "outfit": "dark trench coat, silver pendant, leather boots",
+      "description": "standing calmly, observant expression"
     }
   ]
 }
 ```
 
-Rules:
+Consistency rules:
 
-- Reuse the same character skeleton (`id/name/appearance/outfit/description`) across all scenes.
-- For each scene, only update per-scene motion/emotion in `character_descriptions`.
-- For multi-character scenes, include all related IDs in `character_ids`.
+- Use `roles.json` as the role prompt source.
+- Keep `id`, `name`, `appearance`, `outfit` unchanged for existing roles.
+- Only modify `description` to reflect this clip's action/emotion.
+- If a new role is required, append a new role entry; never rewrite identity fields of existing roles.
+- If no recurring roles exist yet, initialize with:
 
-### 3) Generate storyboard images
-
-```bash
-python /Users/tszkinlai/.codex/skills/openai-text-to-image-storyboard/scripts/generate_storyboard_images.py \
-  --project-dir "<project_dir>" \
-  --env-file /Users/tszkinlai/.codex/skills/text-to-short-video/.env \
-  --content-name "<content_name>" \
-  --prompts-file "<project_dir>/pictures/<content_name>/prompts.json"
+```json
+{"characters": []}
 ```
 
-Use aspect ratio mapping when needed:
+## Environment Setup
 
-- vertical -> `9:16`
-- horizontal -> `16:9`
+Use this template:
 
-### 4) Compose and render final video
+- `/Users/tszkinlai/.codex/skills/text-to-short-video/.env.example`
 
-- Build or reuse Remotion workspace at:
-  - `<project_dir>/video/<content_name>/remotion/`
-- Use `remotion-best-practices` rules for compositions and transitions.
-- Resolve final render size in this priority order:
-  1. explicit user input (`<width>x<height>`)
-  2. `TEXT_TO_SHORT_VIDEO_WIDTH` + `TEXT_TO_SHORT_VIDEO_HEIGHT` from `.env`
-  3. default `1080x1920`
-- Apply the resolved size to Remotion composition `width` and `height`.
-- Keep image aspect ratio consistent with final video size (`9:16` for vertical, `16:9` for horizontal).
-- Default to one final short video unless user explicitly asks for multiple clips.
-- Keep Remotion project sources for user revisions.
+Copy to:
 
-### 5) Enforce final aspect ratio and size (post-processing, required)
+- `/Users/tszkinlai/.codex/skills/text-to-short-video/.env`
 
-After render, always run:
+Required keys:
+
+- `OPENAI_API_URL`
+- `OPENAI_API_KEY`
+
+Optional keys:
+
+- `OPENAI_VIDEO_MODEL`
+- `OPENAI_VIDEO_DURATION_SECONDS`
+- `OPENAI_VIDEO_ASPECT_RATIO`
+- `OPENAI_VIDEO_SIZE`
+- `OPENAI_VIDEO_POLL_SECONDS`
+- `TEXT_TO_SHORT_VIDEO_WIDTH`
+- `TEXT_TO_SHORT_VIDEO_HEIGHT`
+
+## Workflow
+
+### 1) Resolve `roles.json` before prompt generation
+
+- Target path: `<project_dir>/pictures/<content_name>/roles.json`.
+- If file exists, load and reuse role identities.
+- If file does not exist, create it with the required schema.
+- For existing roles, update only `description` when clip-specific motion/emotion is needed.
+
+### 2) Build one generation prompt from text + roles
+
+- If the user already gives an exact prompt, reuse it directly.
+- Otherwise extract one concise visual prompt from source text.
+- Keep the prompt focused on one coherent short narrative beat.
+- Ensure all role identity details come from `roles.json` and only `description` is clip-specific.
+- Save prompt package under:
+  - `<project_dir>/video/<content_name>/shorts/api/prompt_input.json`
+
+Suggested local `prompt_input.json` structure:
+
+```json
+{
+  "roles_file": "<project_dir>/pictures/<content_name>/roles.json",
+  "description_overrides": {
+    "lin_xia": "running through rain, breathing hard, determined"
+  },
+  "final_prompt": "..."
+}
+```
+
+### 3) Submit video generation request
+
+- Endpoint: `${OPENAI_API_URL%/}/videos/generations`
+- Send model/prompt/duration/size (or aspect ratio) in JSON payload.
+- Save request and response records under:
+  - `<project_dir>/video/<content_name>/shorts/api/`
+
+Example request fields (provider-compatible variants are allowed):
+
+```json
+{
+  "model": "${OPENAI_VIDEO_MODEL}",
+  "prompt": "...",
+  "duration": 50,
+  "size": "1080x1920",
+  "aspect_ratio": "9:16"
+}
+```
+
+### 4) Poll job status until terminal state
+
+- Read job ID from the create response.
+- Poll `${OPENAI_API_URL%/}/videos/generations/<job_id>` every `OPENAI_VIDEO_POLL_SECONDS` seconds.
+- Stop only on terminal state:
+  - success: download output video URL/file
+  - failure/cancelled: report provider error and stop
+
+### 5) Download final MP4
+
+Save to:
+
+- `<project_dir>/video/<content_name>/shorts/<content_name>_important.mp4`
+
+If provider returns multiple outputs, keep the best one that matches requested size/duration closest.
+
+### 6) Enforce final aspect ratio and size (optional but recommended)
+
+When output ratio or resolution differs from target, run:
 
 ```bash
 python /Users/tszkinlai/.codex/skills/text-to-short-video/scripts/enforce_video_aspect_ratio.py \
-  --input-video "<rendered_video_path>" \
+  --input-video "<downloaded_video_path>" \
   --output-video "<final_output_video_path>" \
   --env-file /Users/tszkinlai/.codex/skills/text-to-short-video/.env \
   --force
@@ -151,33 +168,40 @@ python /Users/tszkinlai/.codex/skills/text-to-short-video/scripts/enforce_video_
 
 Behavior:
 
-- If rendered video aspect ratio differs from target (`width x height`), the script center-crops first, then scales.
-- If aspect ratio matches but pixel size differs, the script scales to the target size.
-- If both aspect ratio and size already match, the script keeps the original content (copy/no-op).
+- aspect ratio mismatch: center-crop then scale
+- same ratio but different size: scale
+- already matching: no-op/copy
 
 ## Output Contract
 
 Return absolute paths for:
 
-- `prompts.json`
-- generated storyboard image directory
-- final rendered `.mp4`
-- Remotion project directory
+- `roles.json` used for role consistency
+- prompt input JSON (if saved)
+- API request payload JSON (if saved)
+- API create response JSON (if saved)
+- final downloaded `.mp4`
+- post-processed `.mp4` (if post-processing executed)
 
 Also report:
 
-- chosen scene list and why each scene was selected
-- final duration check (must be 30-60 seconds)
+- role reuse summary (reused/added roles)
+- which role descriptions were modified for this clip
+- final prompt text source (user-locked or agent-extracted)
+- job ID and final status
+- duration check (`30-60` seconds)
 - final render size check (`width x height`)
-- post-process result (whether center crop was applied)
+- whether center crop was applied
 
 ## Quality Gate Checklist
 
 Before finishing, verify:
 
-- prompt file strictly uses one supported JSON format above
-- scene order is consistent across prompts and final timeline
-- rendered duration is within 30-60 seconds
-- rendered video size matches requested or configured `width x height`
-- when aspect ratio mismatches, post-process center crop is executed
-- all output paths exist and are returned as absolute paths
+- generation path is API-only (no storyboard/remotion orchestration)
+- `roles.json` uses required schema and is used as prompt source
+- existing role identity fields (`id/name/appearance/outfit`) were not modified
+- only role `description` was changed for clip-specific behavior
+- job reached a successful terminal state
+- output file exists at returned absolute path
+- output duration is within `30-60` seconds (or user-approved exception)
+- output size matches requested target (after post-processing if needed)

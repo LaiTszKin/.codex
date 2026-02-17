@@ -1,18 +1,31 @@
 # text-to-short-video
 
-把文章、腳本、章節、筆記轉成 30–60 秒短影片的 Codex Skill。
+把文章、腳本、章節、筆記轉成 30–60 秒短影片的 Codex Skill（API-only 版本）。
 
 此 Skill 會：
 
-- 從文字抽出可視化場景
-- 以 `openai-text-to-image-storyboard` 的 JSON schema 產生 `prompts.json`
-- 生成圖片並組裝成 Remotion 影片
-- 在輸出後自動檢查比例與尺寸，必要時執行中心裁切與縮放
+- 從文字抽出一段短影片提示詞（或直接使用使用者鎖定 prompt）
+- 使用 `roles.json` 維持角色一致性（既有角色只改 `description`）
+- 直接呼叫 OpenAI 相容的影片生成 API
+- 輪詢任務直到完成並下載 MP4
+- 必要時執行比例/尺寸後處理
 
 ## 依賴 Skills
 
-- `openai-text-to-image-storyboard`
-- `remotion-best-practices`
+無強制依賴。
+
+> 此 skill 不使用 `openai-text-to-image-storyboard` 與 `remotion-best-practices`。
+
+## 角色一致性（roles.json）
+
+- 角色檔固定使用：`<project_dir>/pictures/<content_name>/roles.json`
+- JSON 格式固定為 `characters` 陣列，角色欄位包含：
+  - `id`
+  - `name`
+  - `appearance`
+  - `outfit`
+  - `description`
+- 為了保持一致性：既有角色只能更新 `description`，不得改寫 `id/name/appearance/outfit`
 
 ## 環境設定
 
@@ -28,28 +41,27 @@ cp /Users/tszkinlai/.codex/skills/text-to-short-video/.env.example \
 - `OPENAI_API_URL`
 - `OPENAI_API_KEY`
 
-3. 可用以下設定預設輸出尺寸：
+3. 可選設定：
 
+- `OPENAI_VIDEO_MODEL`
+- `OPENAI_VIDEO_DURATION_SECONDS`
+- `OPENAI_VIDEO_ASPECT_RATIO`
+- `OPENAI_VIDEO_SIZE`
+- `OPENAI_VIDEO_POLL_SECONDS`
 - `TEXT_TO_SHORT_VIDEO_WIDTH`
 - `TEXT_TO_SHORT_VIDEO_HEIGHT`
 
-## 比例修正（後處理）
+## 比例修正（後處理，可選）
 
-渲染完成後，請執行：
+當 API 生成影片比例或尺寸與目標不一致時，執行：
 
 ```bash
 python /Users/tszkinlai/.codex/skills/text-to-short-video/scripts/enforce_video_aspect_ratio.py \
-  --input-video "<rendered_video_path>" \
+  --input-video "<downloaded_video_path>" \
   --output-video "<final_output_video_path>" \
   --env-file /Users/tszkinlai/.codex/skills/text-to-short-video/.env \
   --force
 ```
-
-行為如下：
-
-- 若輸出比例不符目標尺寸：先中心裁切再縮放
-- 若比例相同但解析度不同：直接縮放
-- 若比例與解析度都相同：保持原始內容（no-op/copy）
 
 ## 檔案結構
 
