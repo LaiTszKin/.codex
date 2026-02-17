@@ -4,15 +4,14 @@
 
 此 Skill 會：
 
-- 從文字抽出可視化場景並生成旁白稿
+- 從文字抽出可視化場景
 - 以 `openai-text-to-image-storyboard` 的 JSON schema 產生 `prompts.json`
-- 生成圖片、配音、字幕並組裝成 Remotion 影片
+- 生成圖片並組裝成 Remotion 影片
 - 在輸出後自動檢查比例與尺寸，必要時執行中心裁切與縮放
 
 ## 依賴 Skills
 
 - `openai-text-to-image-storyboard`
-- `docs-to-voice`
 - `remotion-best-practices`
 
 ## 環境設定
@@ -29,12 +28,7 @@ cp /Users/tszkinlai/.codex/skills/text-to-short-video/.env.example \
 - `OPENAI_API_URL`
 - `OPENAI_API_KEY`
 
-3. 如需 API 語音，再填入：
-
-- `DOCS_TO_VOICE_MODE=api`
-- `DASHSCOPE_API_KEY`
-
-4. 可用以下設定預設輸出尺寸：
+3. 可用以下設定預設輸出尺寸：
 
 - `TEXT_TO_SHORT_VIDEO_WIDTH`
 - `TEXT_TO_SHORT_VIDEO_HEIGHT`
